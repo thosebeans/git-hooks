@@ -4,20 +4,20 @@ COMMIT_MSG_FILE=$1
 COMMIT_SOURCE=$2
 SHA1=$3
 
-if [ ! "$(cat "$COMMIT_MSG_FILE" | head -n 1)" = '' ]; then
-    exit 0
+commitMsgFileOrig="$(cat "$COMMIT_MSG_FILE")"
+printf 'TYPE(SCOPE): DESC
+
+### BODY
+
+### HEADERS\n' > "$COMMIT_MSG_FILE"
+
+gitStatus="$(git status --porcelain --verbose --untracked-files=no |
+    sed 's|^\s\+||g' |
+    sed 's|^\([A-Z])[A-Z]\)|\1|g' |
+    sed 's|^\([A-Z]\)\s\+|\1 |g')"
+
+if ! [ "$gitStatus" = "" ]; then
+    printf 'files:\n%s' "$gitStatus" >> "$COMMIT_MSG_FILE"
 fi
 
-msgOrig="$(cat "$COMMIT_MSG_FILE" | grep '^.\+')"
-gitStatus="$(git status --porcelain --verbose --untracked-files=no  | sed 's|^\([A-Z]\)\([A-Z]\)\?\s\+|\1 |g')"
-template='TYPE(SCOPE): DESC
-
-#BODY
-
-%s
-#
-#
-#
-%s'
-
-printf "$template" "$gitStatus" "$msgOrig" > "$COMMIT_MSG_FILE"
+printf '%s' "$commitMsgFileOrig" >> "$COMMIT_MSG_FILE"
