@@ -16,6 +16,10 @@ gitStatus="$(git status --porcelain --verbose --untracked-files=no |
     sed 's|^\([A-Z])[A-Z]\)|\1|g' |
     sed 's|^\([A-Z]\)\s\+|\1 |g')"
 
+if git rev-parse --abbrev-ref HEAD | grep '^[A-Z]\+-[0-9]\+$' >/dev/null; then
+    printf 'jira-ticket: %s\n' "$(git rev-parse --abbrev-ref HEAD)" >> "$COMMIT_MSG_FILE"
+fi
+
 if ! [ "$gitStatus" = "" ]; then
     printf 'files:\n%s' "$gitStatus" >> "$COMMIT_MSG_FILE"
 fi
