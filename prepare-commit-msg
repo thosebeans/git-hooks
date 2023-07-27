@@ -13,7 +13,7 @@ printf 'TYPE(SCOPE): DESC
 
 gitStatus="$(git status --porcelain --verbose --untracked-files=no |
     sed 's|^\s\+||g' |
-    sed 's|^\([A-Z])[A-Z]\)|\1|g' |
+    sed 's|^\([A-Z]\)[A-Z]|\1|g' |
     sed 's|^\([A-Z]\)\s\+|\1 |g')"
 
 if git rev-parse --abbrev-ref HEAD | grep '^[A-Z]\+-[0-9]\+$' >/dev/null; then
