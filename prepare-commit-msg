@@ -24,4 +24,4 @@ if ! [ "$gitStatus" = "" ]; then
     printf 'files:\n%s' "$gitStatus" >> "$COMMIT_MSG_FILE"
 fi
 
-printf '%s' "$commitMsgFileOrig" >> "$COMMIT_MSG_FILE"
+printf '\n%s' "$commitMsgFileOrig" | sed 's|^\([^#].*\)\?$|#\1|g' >> "$COMMIT_MSG_FILE"
