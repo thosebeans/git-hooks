@@ -4,24 +4,59 @@ COMMIT_MSG_FILE=$1
 COMMIT_SOURCE=$2
 SHA1=$3
 
-commitMsgFileOrig="$(cat "$COMMIT_MSG_FILE")"
-printf 'TYPE(SCOPE): DESC
+commitMsgDefault="$(cat "${COMMIT_MSG_FILE}")"
 
-### BODY
+printf '#!/usr/bin/env sh\n\n' >"${COMMIT_MSG_FILE}"
 
-### HEADERS\n' > "$COMMIT_MSG_FILE"
+eotNonce="____________EOT$(date +%s)"
 
-gitStatus="$(git status --porcelain --verbose --untracked-files=no |
-    sed 's|^\s\+||g' |
-    sed 's|^\([A-Z]\)[A-Z]|\1|g' |
-    sed 's|^\([A-Z]\)\s\+|\1 |g')"
+cat <<EOT >>"${COMMIT_MSG_FILE}"
+### COMMIT TYPE
+# The commit type describes the general nature of the commit.
 
-if git rev-parse --abbrev-ref HEAD | grep '^[A-Z]\+-[0-9]\+$' >/dev/null; then
-    printf 'jira-ticket: %s\n' "$(git rev-parse --abbrev-ref HEAD)" >> "$COMMIT_MSG_FILE"
-fi
+CHANGE
+# ADD
+# RM
+# REVERT
+# FEAT
+# DOCS
+# TYPE XYZ
 
-if ! [ "$gitStatus" = "" ]; then
-    printf 'files:\n%s' "$gitStatus" >> "$COMMIT_MSG_FILE"
-fi
+### COMMIT SCOPE (OPTIONAL)
+# The commit scope describes the parts of your project, this commit applies to.
 
-printf '\n%s' "$commitMsgFileOrig" | sed 's|^\([^#].*\)\?$|#\1|g' >> "$COMMIT_MSG_FILE"
+SCOPE #SCOPENAME
+
+### COMMIT DESCRIPTION
+# The commit description is a short message, describing the changes.
+
+DESCRIPTION #DESCRIPTIONXYZ
+
+### BODY (OPTIONAL)
+# The commit body typically decribes the reason for the changes.
+
+BODY <<${eotNonce}
+${eotNonce}
+
+### FOOTERS (OPTIONAL)
+# Footers contain additional metadata about the commit.
+
+FOOTER files <<${eotNonce}
+$(git status --porcelain --verbose --untracked-files=no | grep '^[A-Z]' | sed 's|^\([A-Z]\)[A-Z]*\s*\([^ ]\)|\1 \2|g')
+${eotNonce}
+$(
+    gitBranch="$(git rev-parse --abbrev-ref HEAD)"
+    if printf %s "${gitBranch}" | grep '^[A-Z]\+-[0-9]\+' >/dev/null; then
+        printf '%s\n' "FOOTER jira-ticket ${gitBranch}"
+    fi
+)
+
+### Default/Old message
+#
+# MESSAGE <<${eotNonce}
+cat <<${eotNonce} >/dev/null
+${commitMsgDefault}
+${eotNonce}
+EOT
+
+exit 0

@@ -1,0 +1,148 @@
+#!/usr/bin/env sh
+
+COMMIT_MSG_FILE=$1
+
+### util
+
+exitError() {
+    printf '!!! ERROR'
+    i=0
+    while i=$((i + 1)); [ ${i} -le $# ]; do
+        eval "printf ': %s' \"\${${i}}\""
+    done
+    printf ' !!!\n'
+    exit 1
+}
+
+### TYPE
+
+commitTypeSet=0
+commitType=''
+
+TYPE() {
+    if [ $# -lt 1 ]; then
+        exitError TYPE 'invalid number of arguments'
+    fi
+    commitTypeSet=1
+    commitType="${1}"
+}
+for i in $(printf %s 'CHANGE ADD RM REVERT FEAT DOCS'); do
+    eval "${i}() { TYPE \$(printf %s ${i} | tr '[:upper:]' '[:lower:]'); }"
+done
+
+### SCOPE
+
+commitScopeSet=0
+commitScope=''
+
+SCOPE() {
+    if [ $# -eq 0 ]; then
+        commitScopeSet=0
+        return 0
+    fi
+    commitScopeSet=1
+    commitScope="${1}"
+}
+
+### DESCRIPTION
+
+commitDescriptionSet=0
+commitDescription=''
+
+DESCRIPTION() {
+    if [ $# -eq 0 ]; then
+        exitError DESCRIPTION 'invalid number of arguments'
+    fi
+    commitDescriptionSet=1
+    i=0
+    while i=$((i + 1)); [ ${i} -le $# ]; do
+        if [ ! "${commitDescription}" = '' ]; then
+            commitDescription="${commitDescription} "
+        fi
+        eval "commitDescription=\"\${commitDescription}\${${i}}\""
+    done
+}
+
+### BODY
+
+commitBody=''
+BODY() {
+    if [ $# -eq 0 ]; then
+        commitBody="$(cat)"
+        return 0
+    fi
+    i=0
+    while i=$((i + 1)); [ ${i} -le $# ]; do
+        if [ ! "${commitBody}" = '' ]; then
+            commitBody="${commitBody} "
+        fi
+        eval "commitBody=\"\${commitBody}\${${i}}\""
+    done
+}
+
+### FOOTER
+
+commitFooters=''
+
+FOOTER() {
+    if [ $# -eq 0 ]; then
+        exitError FOOTER 'missing footer name'
+    fi
+    if [ $# -eq 1 ]; then
+        commitFooters="$(printf '%s\n%s:\n%s' "${commitFooters}" "${1}" "$(cat)")"
+        return 0
+    fi
+    commitFooters="$(printf '%s\n%s:' "${commitFooters}" "${1}")"
+    i=1
+    while i=$((i + 1)); [ ${i} -le $# ]; do
+        eval "commitFooters=\"\${commitFooters} \${${i}}\""
+    done
+}
+
+### MESSAGE
+
+commitMessageSet=0
+commitMessage=''
+
+MESSAGE() {
+    commitMessageSet=1
+    if [ $# -eq 0 ]; then
+        commitMessage="$(cat)"
+        return 0
+    fi
+    i=0
+    while i=$((i + 1)); [ ${i} -le $# ]; do
+        eval "commitMessage=\"\${commitMessage} \${${i}}\""
+    done
+}
+
+### SOURCE
+
+. "${COMMIT_MSG_FILE}"
+
+### GENERTING COMMIT MESSAGE
+
+printf '' >"${COMMIT_MSG_FILE}"
+
+if [ ${commitMessageSet} -ne 0 ]; then
+    printf %s "${commitMessage}" >>"${COMMIT_MSG_FILE}"
+    exit 0
+fi
+
+if [ ${commitTypeSet} -eq 0 ]; then
+    exitError TYPE 'missing type'
+fi
+printf %s "${commitType}" >>"${COMMIT_MSG_FILE}"
+
+if [ "${commitScopeSet}" -ne 0 ]; then
+    printf '(%s)' "${commitScope}" >>"${COMMIT_MSG_FILE}"
+fi
+
+if [ ${commitDescriptionSet} -eq 0 ]; then
+    exitError DESCRIPTION 'missing description'
+fi
+printf ': %s\n\n' "${commitDescription}" >>"${COMMIT_MSG_FILE}"
+
+printf '%s\n\n' "${commitBody}" >>"${COMMIT_MSG_FILE}"
+
+printf '%s\n' "${commitFooters}" >>"${COMMIT_MSG_FILE}"
