@@ -11,17 +11,17 @@ printf '#!/usr/bin/env sh\n\n' >"${COMMIT_MSG_FILE}"
 eotNonce="____________EOT$(date +%s)"
 
 cat <<EOT >>"${COMMIT_MSG_FILE}"
-TYPE #change #rm #revert #feat #docs
-SCOPE #scope_name(optional)
-DESCRIPTION #description
+TYPE=''
+SCOPE=''
+DESCRIPTION=''
 
-BODY <<${eotNonce}
-${eotNonce}
+BODY="
+"
 
 # FOOTER footer_name footer_value
-FOOTER files <<${eotNonce}
+FOOTER files '
 $(git status --porcelain --verbose --untracked-files=no | grep '^[A-Z]' | sed 's|^\([A-Z]\)[A-Z]*\s*\([^ ]\)|\1 \2|g')
-${eotNonce}
+'
 $(
     gitBranch="$(git rev-parse --abbrev-ref HEAD)"
     if printf %s "${gitBranch}" | grep '^[A-Z]\+-[0-9]\+' >/dev/null; then
@@ -29,12 +29,12 @@ $(
     fi
 )
 
-### Default/Old message
-#
-# MESSAGE <<${eotNonce}
-cat <<${eotNonce} >/dev/null
+### OLD MESSAGE
+
+# USE_MESSAGE
+MESSAGE='
 ${commitMsgDefault}
-${eotNonce}
+'
 EOT
 
 exit 0
