@@ -11,36 +11,14 @@ printf '#!/usr/bin/env sh\n\n' >"${COMMIT_MSG_FILE}"
 eotNonce="____________EOT$(date +%s)"
 
 cat <<EOT >>"${COMMIT_MSG_FILE}"
-### COMMIT TYPE
-# The commit type describes the general nature of the commit.
-
-CHANGE
-# ADD
-# RM
-# REVERT
-# FEAT
-# DOCS
-# TYPE XYZ
-
-### COMMIT SCOPE (OPTIONAL)
-# The commit scope describes the parts of your project, this commit applies to.
-
-SCOPE #SCOPENAME
-
-### COMMIT DESCRIPTION
-# The commit description is a short message, describing the changes.
-
-DESCRIPTION #DESCRIPTIONXYZ
-
-### BODY (OPTIONAL)
-# The commit body typically decribes the reason for the changes.
+TYPE #change #rm #revert #feat #docs
+SCOPE #scope_name(optional)
+DESCRIPTION #description
 
 BODY <<${eotNonce}
 ${eotNonce}
 
-### FOOTERS (OPTIONAL)
-# Footers contain additional metadata about the commit.
-
+# FOOTER footer_name footer_value
 FOOTER files <<${eotNonce}
 $(git status --porcelain --verbose --untracked-files=no | grep '^[A-Z]' | sed 's|^\([A-Z]\)[A-Z]*\s*\([^ ]\)|\1 \2|g')
 ${eotNonce}

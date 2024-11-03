@@ -26,9 +26,6 @@ TYPE() {
     commitTypeSet=1
     commitType="${1}"
 }
-for i in $(printf %s 'CHANGE ADD RM REVERT FEAT DOCS'); do
-    eval "${i}() { TYPE \$(printf %s ${i} | tr '[:upper:]' '[:lower:]'); }"
-done
 
 ### SCOPE
 
